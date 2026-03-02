@@ -9,12 +9,21 @@
 - [x] Clean Architecture project scaffold (Domain, Application, Infrastructure, API, Tests)
 - [x] Placeholder files removed (Class1.cs, WeatherForecast.cs)
 - [x] All NuGet packages installed
+
 - [x] **V1 Feature #1: Register Organization** ✨
   - [x] Domain: BaseEntity, Organization, User, OrgUser, UserRole, Custom Exceptions
   - [x] Application: DTOs, Validators, Service Interface, Repository Interfaces
   - [x] Infrastructure: DbContext, Repositories, JWT Service, Password Hashing, AuthService
   - [x] API: ApiResponse<T>, GlobalExceptionMiddleware, AuthController, Program.cs DI
   - [x] Configuration: appsettings.json with DB and JWT settings
+  - [x] **Build Status: ✅ SUCCESS**
+
+- [x] **V1 Feature #2: Invite Users to Organization** ✨
+  - [x] Domain: InviteToken entity with expiry/single-use validation
+  - [x] Application: CreateInviteRequest, AcceptInviteRequest, InviteResponse DTOs and validators
+  - [x] Infrastructure: InviteTokenRepository, TokenGeneratorService, InviteService
+  - [x] API: InviteController with CreateInvite and AcceptInvite endpoints
+  - [x] Token-based invites with 48-hour expiry and single-use enforcement
   - [x] **Build Status: ✅ SUCCESS**
 
 - [x] **V1 Feature #3: Role-Based Access Control** ✨
@@ -29,36 +38,33 @@
   - [x] Program.cs DI configuration for auth
   - [x] **Build Status: ✅ SUCCESS**
 
+- [x] **V1 Feature #4: Task Management** ✨
+  - [x] Domain: TaskItem entity, TaskStatus enum (Todo/InProgress/Done), TaskPriority enum (Low/Medium/High)
+  - [x] Application: CreateTaskRequest, UpdateTaskRequest, TaskResponse DTOs and validators
+  - [x] Infrastructure: TaskRepository with org-scoped queries, TaskService with full CRUD
+  - [x] API: TaskController with 5 endpoints (POST, GET, GET/:id, PUT, DELETE)
+  - [x] Task status/priority management with role-based restrictions
+  - [x] Namespace conflict resolution (System.Threading.Tasks.TaskStatus vs Domain.Enums.TaskStatus)
+  - [x] **Build Status: ✅ SUCCESS**
+
 ---
 
 ## 🔄 In Progress (Awaiting Instructions)
 
-### V1 — Core Foundation
+### V1 — Core Foundation (Remaining)
 
-**Feature #3: Role-Based Access Control**
-- [ ] ASP.NET Authorization Policies (AdminOnly, MemberOrAdmin)
-- [ ] Custom authorization middleware
-- [ ] JWT claims population and validation
-- [ ] Permission-based endpoint decorators
+**Feature #5: Tenant Data Isolation** (Implicitly Implemented - Validation Needed)
+- [x] Repository base class with OrganizationId filtering
+- [x] Global query filters at DbContext level  
+- [ ] Explicit integration tests for cross-tenant access denial
+- [ ] Documentation and validation
 
-**Feature #4: Task Management (Per Organization)**
-- [ ] Domain: TaskItem entity, TaskStatus enum, TaskPriority enum
-- [ ] Application: Task DTOs, Validators, Service Interface
-- [ ] Infrastructure: TaskRepository, TaskService
-- [ ] API: TaskController with CRUD endpoints
-- [ ] Tenant isolation at repository layer
+**Feature #6: JWT Refresh Token** (Optional V1 - NOT STARTED)
+- [ ] Refresh token entity and storage
+- [ ] Token rotation mechanism
+- [ ] Refresh endpoint implementation
 
-**Feature #5: Tenant Data Isolation** (Implemented implicitly with repositories)
-- [ ] Repository base class with OrganizationId filtering
-- [ ] Global query filters at DbContext level
-- [ ] Integration tests for cross-tenant access denial
-
-**Feature #6: JWT Authentication** (Partially Complete)
-- [x] Login endpoint ✅
-- [x] Register endpoint ✅
-- [ ] Refresh token mechanism (optional V1)
-
-**Feature #7: Automated Tests (30+)**
+**Feature #7: Automated Tests (30+)** (NOT STARTED)
 - [ ] Unit Tests: Register organization (4 tests)
 - [ ] Unit Tests: Invite user (5 tests)
 - [ ] Unit Tests: Accept invite (4 tests)
@@ -160,24 +166,42 @@
 
 ## 📋 Summary Statistics
 
-- **V1 Features Complete:** 2 / 7 (28%)
+- **V1 Features Complete:** 4 / 7 (57%)
 - **V2 Features Complete:** 0 / 4 (0%)
 - **V3 Features Complete:** 0 / 4 (0%)
 - **V4 Features Complete:** 1 / 5 (20%)
-- **Overall Progress:** 3 / 20 features (15%)
+- **Overall Progress:** 5 / 20 features (25%)
 
 ---
 
 ## 🚀 Next Steps
 
-**Ready for Feature #3: Role-Based Access Control**
+**Choose Your Path:**
 
-This will add:
-- ASP.NET Authorization policies for Admin-only and Member operations
-- Custom middleware for org membership validation
-- Permission decorators on endpoints
+1. **V1 Feature #7: Automated Tests (30+)** - Recommended
+   - Build comprehensive test coverage for all completed features
+   - Unit + Integration tests for Features #1-4
+   - Cross-tenant isolation validation tests
+   - ~6-8 hours of work
 
-Just say: **"Proceed to V1 Feature #3: Role-Based Access Control"**
+2. **V1 Feature #5: Tenant Data Isolation** - Quick Win
+   - Explicit integration tests validating tenant isolation
+   - Tenant access denial scenarios
+   - ~1-2 hours of work
+
+3. **V1 Feature #6: JWT Refresh Token** - Optional Enhancement
+   - Token rotation mechanism
+   - Refresh endpoint
+   - ~2-3 hours of work
+
+4. **Skip to V2 Features** - Performance Features
+   - Redis caching, pagination, database indexing
+   - Requires V1 features to be tested first
+
+**What would you like to proceed with?**
+- Say **"Feature 7"** or **"Tests"** for automated tests
+- Say **"Feature 5"** or **"Isolation"** for tenant data isolation validation
+- Say **"Feature 6"** or **"Refresh"** for JWT refresh token
 
 ---
 

@@ -57,7 +57,7 @@ namespace Infastructure.Services
                 title: request.Title,
                 organizationId: organizationId,
                 createdByUserId: userId,
-                status: TaskStatus.Todo,
+                status: Domain.Enums.TaskStatus.Todo,
                 priority: request.Priority)
             {
                 Description = request.Description,
@@ -124,8 +124,8 @@ namespace Infastructure.Services
         /// <returns>A list of filtered tasks.</returns>
         public async Task<List<TaskResponse>> GetTasksFilteredAsync(
             Guid organizationId,
-            TaskStatus? status = null,
-            TaskPriority? priority = null,
+            Domain.Enums.TaskStatus? status = null,
+            Domain.Enums.TaskPriority? priority = null,
             Guid? assigneeId = null)
         {
             var tasks = await _taskRepository.GetTasksFilteredAsync(organizationId, status, priority);
@@ -197,8 +197,8 @@ namespace Infastructure.Services
                 else
                 {
                     // Verify assignee exists
-                    var assignee = await _userRepository.GetByIdAsync(request.AssigneeId.Value);
-                    if (assignee == null)
+                    var assigneeUser = await _userRepository.GetByIdAsync(request.AssigneeId.Value);
+                    if (assigneeUser == null)
                     {
                         throw new NotFoundException("User", request.AssigneeId.Value);
                     }
@@ -215,9 +215,9 @@ namespace Infastructure.Services
             await _taskRepository.SaveChangesAsync();
 
             var createdByUser = await _userRepository.GetByIdAsync(task.CreatedByUserId);
-            var assignee = task.AssigneeId.HasValue ? await _userRepository.GetByIdAsync(task.AssigneeId.Value) : null;
+            var assigneeUpdated = task.AssigneeId.HasValue ? await _userRepository.GetByIdAsync(task.AssigneeId.Value) : null;
 
-            return MapToTaskResponse(task, createdByUser, assignee);
+            return MapToTaskResponse(task, createdByUser, assigneeUpdated);
         }
 
         /// <summary>

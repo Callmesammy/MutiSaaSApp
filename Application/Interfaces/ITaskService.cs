@@ -44,8 +44,8 @@ namespace Application.Interfaces
         /// <returns>A list of filtered tasks.</returns>
         Task<List<TaskResponse>> GetTasksFilteredAsync(
             Guid organizationId,
-            TaskStatus? status = null,
-            TaskPriority? priority = null,
+            Domain.Enums.TaskStatus? status = null,
+            Domain.Enums.TaskPriority? priority = null,
             Guid? assigneeId = null);
 
         /// <summary>

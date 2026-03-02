@@ -22,12 +22,12 @@ namespace Domain.Entities
         /// <summary>
         /// Gets or sets the current status of the task.
         /// </summary>
-        public TaskStatus Status { get; set; }
+        public Domain.Enums.TaskStatus Status { get; set; }
 
         /// <summary>
         /// Gets or sets the priority level of the task.
         /// </summary>
-        public TaskPriority Priority { get; set; }
+        public Domain.Enums.TaskPriority Priority { get; set; }
 
         /// <summary>
         /// Gets or sets the ID of the organization that owns this task.

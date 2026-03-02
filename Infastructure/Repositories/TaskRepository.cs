@@ -43,8 +43,8 @@ namespace Infastructure.Repositories
         /// <param name="priority">Optional priority filter.</param>
         public async Task<List<TaskItem>> GetTasksFilteredAsync(
             Guid organizationId,
-            TaskStatus? status = null,
-            TaskPriority? priority = null)
+            Domain.Enums.TaskStatus? status = null,
+            Domain.Enums.TaskPriority? priority = null)
         {
             var query = _dbSet
                 .Include(t => t.CreatedByUser)
