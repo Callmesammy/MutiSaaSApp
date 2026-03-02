@@ -137,16 +137,12 @@ namespace Infastructure.Services
             {
                 if (inviteToken.IsExpired())
                 {
-                    throw new Domain.Exceptions.ValidationException(
-                        "Token",
-                        "Invite token has expired. Request a new invitation.");
+                    throw new ConflictException("Invite token has expired. Request a new invitation.");
                 }
 
                 if (inviteToken.IsUsed)
                 {
-                    throw new Domain.Exceptions.ValidationException(
-                        "Token",
-                        "Invite token has already been used.");
+                    throw new ConflictException("Invite token has already been used.");
                 }
             }
 

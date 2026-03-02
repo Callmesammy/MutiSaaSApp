@@ -96,6 +96,11 @@ namespace Infastructure.Data
 
                 // Unique constraint: one user per organization
                 entity.HasIndex(e => new { e.OrganizationId, e.UserId }).IsUnique();
+
+                // Indexes for filtering by user and role
+                entity.HasIndex(e => new { e.UserId, e.Role });
+                entity.HasIndex(e => e.UserId);
+
                 entity.HasQueryFilter(e => !e.IsDeleted);
             });
 
@@ -111,6 +116,13 @@ namespace Infastructure.Data
 
                 // Unique index on token
                 entity.HasIndex(e => e.Token).IsUnique();
+
+                // Indexes for invitation lookup and filtering
+                entity.HasIndex(e => e.Email);
+                entity.HasIndex(e => new { e.OrganizationId, e.IsUsed, e.ExpiresAt });
+
+                // Index for finding unexpired invites
+                entity.HasIndex(e => new { e.Email, e.IsUsed });
 
                 // Foreign key to Organization
                 entity.HasOne(e => e.Organization)
@@ -145,10 +157,20 @@ namespace Infastructure.Data
                 entity.Property(e => e.CreatedByUserId).IsRequired();
                 entity.Property(e => e.DueDate).IsRequired(false);
 
-                // Indexes for performance
+                // Indexes for performance - query patterns
                 entity.HasIndex(e => e.OrganizationId);
                 entity.HasIndex(e => new { e.OrganizationId, e.Status });
+                entity.HasIndex(e => new { e.OrganizationId, e.Priority });
+                entity.HasIndex(e => new { e.OrganizationId, e.CreatedAt }).IsDescending(false, true);
                 entity.HasIndex(e => e.AssigneeId);
+                entity.HasIndex(e => e.CreatedByUserId);
+
+                // Composite indexes for filtering
+                entity.HasIndex(e => new { e.OrganizationId, e.Status, e.Priority });
+                entity.HasIndex(e => new { e.OrganizationId, e.AssigneeId });
+
+                // Index for pagination and sorting
+                entity.HasIndex(e => new { e.OrganizationId, e.CreatedAt });
 
                 // Foreign key to Organization
                 entity.HasOne(e => e.Organization)

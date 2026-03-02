@@ -1,4 +1,5 @@
 using Application.Constants;
+using Application.DTOs.Common;
 using Application.DTOs.Task;
 using Application.Interfaces;
 using Domain.Entities;
@@ -305,6 +306,119 @@ namespace Infastructure.Services
         }
 
         /// <summary>
+        /// Retrieves paginated and filtered tasks for an organization.
+        /// Supports advanced filtering by status, priority, assignee, date ranges, and search.
+        /// </summary>
+        /// <param name="organizationId">The organization ID.</param>
+        /// <param name="request">The pagination and filter request.</param>
+        /// <returns>A paginated response containing filtered tasks.</returns>
+        public async Task<PaginatedResponse<TaskResponse>> GetTasksPaginatedAsync(Guid organizationId, GetTasksRequest request)
+        {
+            // Normalize pagination parameters
+            request.Normalize();
+
+            // Get all tasks for the organization with related data
+            var tasks = await _taskRepository.GetTasksByOrganizationAsync(organizationId);
+
+            // Apply filters
+            var query = tasks.AsEnumerable();
+
+            if (request.Status.HasValue)
+            {
+                query = query.Where(t => t.Status == request.Status.Value);
+            }
+
+            if (request.Priority.HasValue)
+            {
+                query = query.Where(t => t.Priority == request.Priority.Value);
+            }
+
+            if (request.AssigneeId.HasValue)
+            {
+                query = query.Where(t => t.AssigneeId == request.AssigneeId.Value);
+            }
+
+            if (request.CreatedByUserId.HasValue)
+            {
+                query = query.Where(t => t.CreatedByUserId == request.CreatedByUserId.Value);
+            }
+
+            if (request.CreatedAfter.HasValue)
+            {
+                query = query.Where(t => t.CreatedAt >= request.CreatedAfter.Value);
+            }
+
+            if (request.CreatedBefore.HasValue)
+            {
+                query = query.Where(t => t.CreatedAt <= request.CreatedBefore.Value);
+            }
+
+            if (request.DueAfter.HasValue)
+            {
+                query = query.Where(t => t.DueDate.HasValue && t.DueDate >= request.DueAfter.Value);
+            }
+
+            if (request.DueBefore.HasValue)
+            {
+                query = query.Where(t => t.DueDate.HasValue && t.DueDate <= request.DueBefore.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+            {
+                var searchTerm = request.SearchTerm.ToLower();
+                query = query.Where(t =>
+                    t.Title.ToLower().Contains(searchTerm) ||
+                    (t.Description?.ToLower().Contains(searchTerm) ?? false)
+                );
+            }
+
+            // Get total count before pagination
+            var totalCount = query.Count();
+
+            // Apply sorting
+            query = ApplySorting(query, request.SortBy, request.SortDirection);
+
+            // Apply pagination
+            var paginatedTasks = query.Skip(request.Skip).Take(request.Take).ToList();
+
+            // Map to response DTOs
+            var responses = paginatedTasks.Select(task =>
+                MapToTaskResponse(task, task.CreatedByUser, task.Assignee)
+            ).ToList();
+
+            _logger.LogInformation("Retrieved {Count} paginated tasks for organization {OrgId}", responses.Count, organizationId);
+
+            return new PaginatedResponse<TaskResponse>(responses, totalCount, request.Skip, request.Take);
+        }
+
+        /// <summary>
+        /// Applies sorting to the task query based on sort parameters.
+        /// </summary>
+        private static IEnumerable<TaskItem> ApplySorting(IEnumerable<TaskItem> query, string? sortBy, string? sortDirection)
+        {
+            var isDescending = sortDirection?.ToLower() == "desc";
+
+            return (sortBy?.ToLower()) switch
+            {
+                "status" => isDescending 
+                    ? query.OrderByDescending(t => t.Status) 
+                    : query.OrderBy(t => t.Status),
+
+                "priority" => isDescending 
+                    ? query.OrderByDescending(t => t.Priority) 
+                    : query.OrderBy(t => t.Priority),
+
+                "duedate" => isDescending 
+                    ? query.OrderByDescending(t => t.DueDate) 
+                    : query.OrderBy(t => t.DueDate),
+
+                _ => isDescending 
+                    ? query.OrderByDescending(t => t.CreatedAt) 
+                    : query.OrderBy(t => t.CreatedAt)
+            };
+        }
+
+        /// 
         /// Maps a TaskItem domain entity to a TaskResponse DTO.
         /// </summary>
         private TaskResponse MapToTaskResponse(TaskItem task, User? createdByUser, User? assignee)

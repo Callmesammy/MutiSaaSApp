@@ -1,3 +1,4 @@
+using Application.DTOs.Common;
 using Application.DTOs.Task;
 using Domain.Enums;
 
@@ -79,5 +80,14 @@ namespace Application.Interfaces
         /// </summary>
         /// <param name="organizationId">The organization ID.</param>
         Task<int> GetTaskCountAsync(Guid organizationId);
+
+        /// <summary>
+        /// Retrieves paginated and filtered tasks for an organization.
+        /// Supports advanced filtering by status, priority, assignee, date ranges, and search.
+        /// </summary>
+        /// <param name="organizationId">The organization ID.</param>
+        /// <param name="request">The pagination and filter request.</param>
+        /// <returns>A paginated response containing filtered tasks.</returns>
+        Task<PaginatedResponse<TaskResponse>> GetTasksPaginatedAsync(Guid organizationId, GetTasksRequest request);
     }
 }

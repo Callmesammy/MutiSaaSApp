@@ -1,4 +1,5 @@
 using Application.Constants;
+using Application.DTOs.Common;
 using Application.DTOs.Task;
 using Application.Interfaces;
 using Domain.Exceptions;
@@ -137,6 +138,72 @@ namespace MutiSaaSApp.Controllers
             _logger.LogInformation("Retrieved {Count} tasks", tasks.Count);
 
             return Ok(ApiResponse<List<TaskResponse>>.SuccessResponse(tasks));
+        }
+
+        /// <summary>
+        /// Retrieves paginated and filtered tasks for the organization.
+        /// Supports advanced filtering by status, priority, assignee, date ranges, and search.
+        /// Supports sorting by createdAt (default), status, priority, or dueDate.
+        /// </summary>
+        /// <param name="skip">Number of items to skip (default: 0).</param>
+        /// <param name="take">Number of items per page (default: 10, max: 100).</param>
+        /// <param name="sortBy">Column to sort by: createdAt, status, priority, dueDate (default: createdAt).</param>
+        /// <param name="sortDirection">Sort direction: asc or desc (default: desc).</param>
+        /// <param name="status">Filter by task status (optional).</param>
+        /// <param name="priority">Filter by task priority (optional).</param>
+        /// <param name="assigneeId">Filter by assignee user ID (optional).</param>
+        /// <param name="createdByUserId">Filter by creator user ID (optional).</param>
+        /// <param name="createdAfter">Filter tasks created after this date (optional, ISO 8601 format).</param>
+        /// <param name="createdBefore">Filter tasks created before this date (optional, ISO 8601 format).</param>
+        /// <param name="dueAfter">Filter tasks with due date after this date (optional, ISO 8601 format).</param>
+        /// <param name="dueBefore">Filter tasks with due date before this date (optional, ISO 8601 format).</param>
+        /// <param name="searchTerm">Search term to filter by title or description (optional).</param>
+        /// <returns>200 OK with paginated task list and metadata.</returns>
+        [HttpGet("paginated")]
+        [ProducesResponseType(typeof(ApiResponse<PaginatedResponse<TaskResponse>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> GetTasksPaginated(
+            [FromQuery] int skip = 0,
+            [FromQuery] int take = 10,
+            [FromQuery] string? sortBy = "createdAt",
+            [FromQuery] string? sortDirection = "desc",
+            [FromQuery] Domain.Enums.TaskStatus? status = null,
+            [FromQuery] Domain.Enums.TaskPriority? priority = null,
+            [FromQuery] Guid? assigneeId = null,
+            [FromQuery] Guid? createdByUserId = null,
+            [FromQuery] DateTime? createdAfter = null,
+            [FromQuery] DateTime? createdBefore = null,
+            [FromQuery] DateTime? dueAfter = null,
+            [FromQuery] DateTime? dueBefore = null,
+            [FromQuery] string? searchTerm = null)
+        {
+            _logger.LogInformation("Get paginated tasks request - Skip: {Skip}, Take: {Take}, SortBy: {SortBy}, SortDirection: {SortDirection}",
+                skip, take, sortBy, sortDirection);
+
+            var organizationId = GetOrganizationId();
+
+            var request = new GetTasksRequest
+            {
+                Skip = skip,
+                Take = take,
+                SortBy = sortBy,
+                SortDirection = sortDirection,
+                Status = status,
+                Priority = priority,
+                AssigneeId = assigneeId,
+                CreatedByUserId = createdByUserId,
+                CreatedAfter = createdAfter,
+                CreatedBefore = createdBefore,
+                DueAfter = dueAfter,
+                DueBefore = dueBefore,
+                SearchTerm = searchTerm
+            };
+
+            var result = await _taskService.GetTasksPaginatedAsync(organizationId, request);
+            _logger.LogInformation("Retrieved {Count} paginated tasks (page {PageNumber} of {TotalPages})",
+                result.Items.Count, result.PageNumber, result.TotalPages);
+
+            return Ok(ApiResponse<PaginatedResponse<TaskResponse>>.SuccessResponse(result));
         }
 
         /// <summary>

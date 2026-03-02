@@ -11,6 +11,10 @@
     </None>
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
+    <None Include="FEATURE_10_INDEXING.md" />
+    <None Include="FEATURE_11_BENCHMARKING.md" />
+    <None Include="FEATURE_9_PAGINATION.md" />
     <None Include="PROGRESS.md" />
+    <None Include="V1_V2_PROGRESS_REPORT.md" />
   </ItemGroup>
 </Project>
