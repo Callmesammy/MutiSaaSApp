@@ -1,0 +1,6 @@
+services:
+  mutisaasapp:
+    image: ${DOCKER_REGISTRY-}mutisaasapp
+    build:
+      context: .
+      dockerfile: MutiSaaSApp/Dockerfile

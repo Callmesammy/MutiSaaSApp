@@ -1,0 +1,6 @@
+@MutiSaaSApp_HostAddress = http://localhost:5286
+
+GET {{MutiSaaSApp_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
