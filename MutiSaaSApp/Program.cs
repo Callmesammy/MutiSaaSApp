@@ -42,6 +42,7 @@ builder.Host.UseSerilog(logger);
 // Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddSwaggerGen();
 
 // Register DbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -123,6 +124,22 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "MutiSaaS API v1");
+        options.RoutePrefix = "swagger";
+    });
+}
+else
+{
+    // Also enable Swagger in production for documentation purposes
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "MutiSaaS API v1");
+        options.RoutePrefix = "swagger";
+    });
 }
 
 // Register Log Context Middleware (must be first)

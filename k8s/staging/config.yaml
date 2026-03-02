@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mutisaas-config
+  namespace: mutisaas-staging
+data:
+  ASPNETCORE_ENVIRONMENT: "Staging"
+  Logging__LogLevel__Default: "Information"
+  Serilog__MinimumLevel__Default: "Information"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mutisaas-secrets
+  namespace: mutisaas-staging
+type: Opaque
+stringData:
+  ConnectionStrings__DefaultConnection: "Server=sqlserver-staging;Database=MutiSaaSAppDb;User Id=sa;Password=StagingPassword123!;Encrypt=false;TrustServerCertificate=true;"
+  Redis__ConnectionString: "redis-staging:6379"
+  Jwt__Secret: "your-staging-secret-key-min-32-chars-change-in-production-12345"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mutisaas-api
+  namespace: mutisaas-staging
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mutisaas-api
+  template:
+    metadata:
+      labels:
+        app: mutisaas-api
+    spec:
+      containers:
+      - name: mutisaas-api
+        image: ghcr.io/callmesammy/mutisaasapp:develop
+        ports:
+        - containerPort: 5000
+        envFrom:
+        - configMapRef:
+            name: mutisaas-config
+        - secretRef:
+            name: mutisaas-secrets
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mutisaas-api
+  namespace: mutisaas-staging
+spec:
+  selector:
+    app: mutisaas-api
+  ports:
+  - port: 80
+    targetPort: 5000
+  type: LoadBalancer
