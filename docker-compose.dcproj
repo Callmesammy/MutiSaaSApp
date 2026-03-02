@@ -6,15 +6,19 @@
     <ProjectGuid>81dded9d-158b-e303-5f62-77a2896d2a5a</ProjectGuid>
   </PropertyGroup>
   <ItemGroup>
+    <None Include=".env.example" />
     <None Include="COMPLETION_REPORT.md" />
     <None Include="docker-compose.override.yml">
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
+    <None Include="Dockerfile" />
     <None Include="FEATURE_10_INDEXING.md" />
     <None Include="FEATURE_11_BENCHMARKING.md" />
+    <None Include="FEATURE_15_STRUCTURED_LOGGING.md" />
     <None Include="FEATURE_16_HEALTH_CHECK.md" />
+    <None Include="FEATURE_17_DOCKER_COMPOSE.md" />
     <None Include="FEATURE_9_PAGINATION.md" />
     <None Include="FINAL_STATUS.md" />
     <None Include="PROGRESS.md" />

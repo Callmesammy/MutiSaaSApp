@@ -10,8 +10,34 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using MutiSaaSApp.Authorization;
 using MutiSaaSApp.Middleware;
+using Serilog;
+using Serilog.Formatting.Json;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog
+var logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .Enrich.FromLogContext()
+    .Enrich.WithProperty("Application", "MutiSaaSApp")
+    .Enrich.WithMachineName()
+    .Enrich.WithEnvironmentName()
+    .WriteTo.Console(outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}")
+    .WriteTo.File(
+        path: Path.Combine("logs", "mutisaas-.txt"),
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}",
+        rollingInterval: RollingInterval.Day,
+        fileSizeLimitBytes: 52428800, // 50 MB
+        retainedFileCountLimit: 30)
+    .WriteTo.File(
+        path: Path.Combine("logs", "mutisaas-json-.json"),
+        formatter: new JsonFormatter(),
+        rollingInterval: RollingInterval.Day,
+        fileSizeLimitBytes: 52428800,
+        retainedFileCountLimit: 30)
+    .CreateLogger();
+
+builder.Host.UseSerilog(logger);
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -91,9 +117,6 @@ builder.Services.AddAuthentication("Bearer")
 // Add Authorization
 builder.Services.AddAuthorization();
 
-// Add Logging
-builder.Services.AddLogging();
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
@@ -101,6 +124,9 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+// Register Log Context Middleware (must be first)
+app.UseMiddleware<LogContextMiddleware>();
 
 // Register Global Exception Middleware
 app.UseMiddleware<GlobalExceptionMiddleware>();

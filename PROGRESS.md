@@ -119,31 +119,25 @@
 - [ ] Global and endpoint-specific limits
 - [ ] Retry-After header
 
-**Feature #15: Structured Logging**
-- [ ] Serilog setup
-- [ ] Context enrichment (RequestId, OrgId, UserId, etc.)
-- [ ] File and console sinks
-- [ ] Rolling daily JSON logs
-
----
-
-### V4 — Production Polish
-
-**Feature #16: Health Check Endpoint** ✨
-- [x] `GET /api/health` implementation ✅
-- [x] Database connectivity check ✅
-- [x] Redis connectivity check ✅
-- [x] Comprehensive health check service ✅
-- [x] Status level determination (Healthy/Degraded/Unhealthy) ✅
-- [x] Integration tests for response format ✅
-- [x] Kubernetes-ready response format ✅
+**Feature #15: Structured Logging** ✨
+- [x] Serilog integration ✅
+- [x] Context enrichment (RequestId, OrgId, UserId) ✅
+- [x] Console + file sinks ✅
+- [x] Rolling daily JSON logs ✅
+- [x] LogContextMiddleware for automatic enrichment ✅
+- [x] Development and production log levels ✅
 - [x] **Build Status: ✅ SUCCESS**
 
-**Feature #17: Docker Compose — Full Stack**
-- [ ] Dockerfile for API
-- [ ] docker-compose.yml with services
-- [ ] Volume persistence configuration
-- [ ] Environment variable setup
+**Feature #17: Docker Compose — Full Stack** ✨
+- [x] Dockerfile (multi-stage build) ✅
+- [x] docker-compose.yml with SQL Server + Redis + API ✅
+- [x] Volume persistence (databases & logs) ✅
+- [x] Health checks on all services ✅
+- [x] Environment variable configuration ✅
+- [x] appsettings.Production.json ✅
+- [x] .env.example template ✅
+- [x] Networking isolation ✅
+- [x] **Build Status: ✅ SUCCESS**
 
 **Feature #18: Environment Configuration**
 - [ ] appsettings.Development.json
@@ -170,8 +164,8 @@
 - **V1 Features Complete:** 5 / 7 (71%)
 - **V2 Features Complete:** 0 / 4 (0%)
 - **V3 Features Complete:** 0 / 4 (0%)
-- **V4 Features Complete:** 2 / 5 (40%)
-- **Overall Progress:** 7 / 20 features (35%)
+- **V4 Features Complete:** 4 / 5 (80%)
+- **Overall Progress:** 9 / 20 features (45%)
 - **Total Test Count:** 41 automated tests
 
 ---

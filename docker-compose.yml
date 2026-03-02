@@ -1,6 +1,84 @@
+version: '3.8'
+
 services:
-  mutisaasapp:
-    image: ${DOCKER_REGISTRY-}mutisaasapp
+  # SQL Server Database
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mutisaas-sqlserver
+    environment:
+      SA_PASSWORD: "YourPassword123!"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "YourPassword123!", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - mutisaas-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: mutisaas-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mutisaas-network
+
+  # MutiSaaSApp API
+  mutisaas-api:
     build:
       context: .
-      dockerfile: MutiSaaSApp/Dockerfile
+      dockerfile: Dockerfile
+    container_name: mutisaas-api
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=MutiSaaSAppDb;User Id=sa;Password=YourPassword123!;Encrypt=false;TrustServerCertificate=true;"
+      Redis__ConnectionString: "redis:6379"
+      Redis__Enabled: "true"
+      Jwt__Secret: "your-very-long-secret-key-min-32-chars-change-in-production-12345"
+      Jwt__ExpiryMinutes: "60"
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./logs:/app/logs
+      - ./appsettings.json:/app/appsettings.json:ro
+      - ./appsettings.Development.json:/app/appsettings.Development.json:ro
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - mutisaas-network
+    restart: unless-stopped
+
+networks:
+  mutisaas-network:
+    driver: bridge
+
+volumes:
+  sqlserver-data:
+    driver: local
+  redis-data:
+    driver: local
