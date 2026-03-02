@@ -36,6 +36,16 @@ builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<IPasswordHashService, PasswordHashService>();
 builder.Services.AddScoped<ITokenGeneratorService, TokenGeneratorService>();
 
+// Register Caching Service
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    var redisConnection = builder.Configuration["Redis:ConnectionString"] ?? "localhost:6379";
+    options.Configuration = redisConnection;
+});
+builder.Services.AddScoped<ICacheService, CacheService>();
+
+builder.Services.AddSwaggerGen();
+
 // Register JWT Token Service
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "your-secret-key-change-in-production";
 var jwtExpiryMinutes = int.Parse(builder.Configuration["Jwt:ExpiryMinutes"] ?? "60");

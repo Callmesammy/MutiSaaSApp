@@ -68,7 +68,7 @@ namespace MultiSaasTest.Integration
 
             Assert.NotNull(loginResult);
             Assert.Equal("admin@techcorp.com", loginResult.Email);
-            Assert.True(loginResult.Role == Domain.Enums.UserRole.Admin);
+            Assert.Equal("Admin", loginResult.Role);
         }
 
         [Fact]

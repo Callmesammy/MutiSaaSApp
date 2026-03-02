@@ -1,8 +1,11 @@
+using Application.Interfaces;
 using Application.DTOs.Task;
 using Domain.Entities;
 using Domain.Enums;
 using Infastructure.Repositories;
 using Infastructure.Services;
+using Microsoft.Extensions.Logging;
+using Moq;
 using MultiSaasTest.Fixtures;
 
 namespace MultiSaasTest.Integration
@@ -15,6 +18,8 @@ namespace MultiSaasTest.Integration
     {
         private readonly TestDatabaseFixture _fixture;
         private readonly TaskService _taskService;
+        private readonly Mock<ICacheService> _cacheServiceMock;
+        private readonly Mock<ILogger<TaskService>> _loggerMock;
         private Organization _org1;
         private Organization _org2;
         private User _org1Admin;
@@ -23,12 +28,14 @@ namespace MultiSaasTest.Integration
         public CrossTenantAccessDenialTests()
         {
             _fixture = new TestDatabaseFixture();
+            _cacheServiceMock = new Mock<ICacheService>();
+            _loggerMock = new Mock<ILogger<TaskService>>();
 
             var taskRepo = new TaskRepository(_fixture.Context);
             var userRepo = new UserRepository(_fixture.Context);
             var orgRepo = new OrganizationRepository(_fixture.Context);
 
-            _taskService = new TaskService(taskRepo, userRepo, orgRepo);
+            _taskService = new TaskService(taskRepo, userRepo, orgRepo, _cacheServiceMock.Object, _loggerMock.Object);
             SetupTwoOrganizations();
         }
 

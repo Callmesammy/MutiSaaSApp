@@ -1,20 +1,26 @@
+using Application.Constants;
 using Application.DTOs.Task;
 using Application.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace Infastructure.Services
 {
     /// <summary>
     /// Service for handling task operations.
     /// Manages task creation, retrieval, updates, and deletion with organization scoping.
+    /// Includes distributed caching for performance optimization.
     /// </summary>
     public class TaskService : ITaskService
     {
         private readonly ITaskRepository _taskRepository;
         private readonly IUserRepository _userRepository;
         private readonly IOrganizationRepository _organizationRepository;
+        private readonly ICacheService _cacheService;
+        private readonly ILogger<TaskService> _logger;
+        private const int TaskCacheDurationMinutes = 10;
 
         /// <summary>
         /// Initializes a new instance of the TaskService class.
@@ -22,11 +28,15 @@ namespace Infastructure.Services
         public TaskService(
             ITaskRepository taskRepository,
             IUserRepository userRepository,
-            IOrganizationRepository organizationRepository)
+            IOrganizationRepository organizationRepository,
+            ICacheService cacheService,
+            ILogger<TaskService> logger)
         {
             _taskRepository = taskRepository;
             _userRepository = userRepository;
             _organizationRepository = organizationRepository;
+            _cacheService = cacheService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -78,19 +88,34 @@ namespace Infastructure.Services
             await _taskRepository.AddAsync(taskItem);
             await _taskRepository.SaveChangesAsync();
 
+            // Invalidate cache for organization tasks
+            await _cacheService.RemoveAsync(CacheKeys.GetOrgTasksKey(organizationId));
+            _logger.LogInformation("Task created and cache invalidated: {TaskId}", taskItem.Id);
+
             return MapToTaskResponse(taskItem, user, null);
         }
 
         /// <summary>
         /// Gets a task by ID, verifying it belongs to the specified organization.
+        /// Results are cached to improve performance.
         /// </summary>
         /// <param name="organizationId">The organization ID.</param>
         /// <param name="taskId">The task ID to retrieve.</param>
         /// <returns>The task response, or null if not found.</returns>
         public async Task<TaskResponse?> GetTaskAsync(Guid organizationId, Guid taskId)
         {
+            var cacheKey = CacheKeys.GetTaskKey(organizationId, taskId);
+
+            // Try to get from cache first
+            var cachedTask = await _cacheService.GetAsync<TaskResponse>(cacheKey);
+            if (cachedTask != null)
+            {
+                _logger.LogDebug("Task retrieved from cache: {TaskId}", taskId);
+                return cachedTask;
+            }
+
             var task = await _taskRepository.GetByIdAsync(taskId);
-            
+
             if (task == null || task.OrganizationId != organizationId)
             {
                 return null;
@@ -99,19 +124,39 @@ namespace Infastructure.Services
             var createdByUser = await _userRepository.GetByIdAsync(task.CreatedByUserId);
             var assignee = task.AssigneeId.HasValue ? await _userRepository.GetByIdAsync(task.AssigneeId.Value) : null;
 
-            return MapToTaskResponse(task, createdByUser, assignee);
+            var response = MapToTaskResponse(task, createdByUser, assignee);
+
+            // Cache the result
+            await _cacheService.SetAsync(cacheKey, response, TaskCacheDurationMinutes);
+
+            return response;
         }
 
         /// <summary>
         /// Gets all tasks for an organization.
+        /// Results are cached to improve performance.
         /// </summary>
         /// <param name="organizationId">The organization ID.</param>
         /// <returns>A list of all tasks in the organization.</returns>
         public async Task<List<TaskResponse>> GetTasksAsync(Guid organizationId)
         {
+            var cacheKey = CacheKeys.GetOrgTasksKey(organizationId);
+
+            // Try to get from cache first
+            var cachedTasks = await _cacheService.GetAsync<List<TaskResponse>>(cacheKey);
+            if (cachedTasks != null)
+            {
+                _logger.LogDebug("Tasks retrieved from cache for organization: {OrgId}", organizationId);
+                return cachedTasks;
+            }
+
             var tasks = await _taskRepository.GetTasksByOrganizationAsync(organizationId);
-            
-            return tasks.Select(t => MapToTaskResponse(t, t.CreatedByUser, t.Assignee)).ToList();
+            var response = tasks.Select(t => MapToTaskResponse(t, t.CreatedByUser, t.Assignee)).ToList();
+
+            // Cache the result
+            await _cacheService.SetAsync(cacheKey, response, TaskCacheDurationMinutes);
+
+            return response;
         }
 
         /// <summary>
@@ -214,6 +259,11 @@ namespace Infastructure.Services
             await _taskRepository.UpdateAsync(task);
             await _taskRepository.SaveChangesAsync();
 
+            // Invalidate cache for this task and org tasks list
+            await _cacheService.RemoveAsync(CacheKeys.GetTaskKey(organizationId, taskId));
+            await _cacheService.RemoveAsync(CacheKeys.GetOrgTasksKey(organizationId));
+            _logger.LogInformation("Task updated and cache invalidated: {TaskId}", taskId);
+
             var createdByUser = await _userRepository.GetByIdAsync(task.CreatedByUserId);
             var assigneeUpdated = task.AssigneeId.HasValue ? await _userRepository.GetByIdAsync(task.AssigneeId.Value) : null;
 
@@ -236,6 +286,11 @@ namespace Infastructure.Services
 
             await _taskRepository.DeleteAsync(task);
             await _taskRepository.SaveChangesAsync();
+
+            // Invalidate cache for this task and org tasks list
+            await _cacheService.RemoveAsync(CacheKeys.GetTaskKey(organizationId, taskId));
+            await _cacheService.RemoveAsync(CacheKeys.GetOrgTasksKey(organizationId));
+            _logger.LogInformation("Task deleted and cache invalidated: {TaskId}", taskId);
 
             return true;
         }

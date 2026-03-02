@@ -1,8 +1,11 @@
+using Application.Interfaces;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Exceptions;
 using Infastructure.Repositories;
 using Infastructure.Services;
+using Microsoft.Extensions.Logging;
+using Moq;
 using MultiSaasTest.Fixtures;
 
 namespace MultiSaasTest.Services
@@ -15,6 +18,8 @@ namespace MultiSaasTest.Services
     {
         private readonly TestDatabaseFixture _fixture;
         private readonly TaskService _taskService;
+        private readonly Mock<ICacheService> _cacheServiceMock;
+        private readonly Mock<ILogger<TaskService>> _loggerMock;
         private Organization _org;
         private User _adminUser;
         private User _memberUser;
@@ -24,6 +29,8 @@ namespace MultiSaasTest.Services
         public TaskServiceTests()
         {
             _fixture = new TestDatabaseFixture();
+            _cacheServiceMock = new Mock<ICacheService>();
+            _loggerMock = new Mock<ILogger<TaskService>>();
 
             var taskRepo = new TaskRepository(_fixture.Context);
             var userRepo = new UserRepository(_fixture.Context);
@@ -32,7 +39,9 @@ namespace MultiSaasTest.Services
             _taskService = new TaskService(
                 taskRepository: taskRepo,
                 userRepository: userRepo,
-                organizationRepository: orgRepo);
+                organizationRepository: orgRepo,
+                cacheService: _cacheServiceMock.Object,
+                logger: _loggerMock.Object);
 
             SetupTestData();
         }
