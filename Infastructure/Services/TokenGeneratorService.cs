@@ -28,7 +28,7 @@ namespace Infastructure.Services
         /// <param name="length">The length of the random bytes to generate (default: 32).</param>
         public string GenerateSecureToken(int length = 32)
         {
-            using (var rng = new RNGCryptoServiceProvider())
+            using (var rng = RandomNumberGenerator.Create())
             {
                 var tokenBuffer = new byte[length];
                 rng.GetBytes(tokenBuffer);

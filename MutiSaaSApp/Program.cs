@@ -35,6 +35,7 @@ builder.Services.AddScoped<IInviteService, InviteService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<IPasswordHashService, PasswordHashService>();
 builder.Services.AddScoped<ITokenGeneratorService, TokenGeneratorService>();
+builder.Services.AddScoped<IHealthCheckService, HealthCheckService>();
 
 // Register Caching Service
 builder.Services.AddStackExchangeRedisCache(options =>
