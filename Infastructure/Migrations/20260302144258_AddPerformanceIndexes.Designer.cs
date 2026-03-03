@@ -264,12 +264,12 @@ namespace Infastructure.Migrations
                     b.HasOne("Domain.Entities.User", "AcceptedByUser")
                         .WithMany()
                         .HasForeignKey("AcceptedByUserId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Domain.Entities.User", "InvitedByUser")
                         .WithMany()
                         .HasForeignKey("InvitedByUserId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Domain.Entities.Organization", "Organization")
                         .WithMany()
@@ -342,3 +342,4 @@ namespace Infastructure.Migrations
         }
     }
 }
+

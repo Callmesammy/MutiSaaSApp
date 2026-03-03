@@ -9,6 +9,7 @@
   <Folder Name="/Src/_claude/">
     <File Path="CLAUDE.md" />
     <File Path="FEATURES.md" />
+    <File Path="Frontend.md" />
     <File Path="PLAN.md" />
   </Folder>
   <Project Path="docker-compose.dcproj">

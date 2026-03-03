@@ -1,4 +1,4 @@
-using Application.Constants;
+﻿using Application.Constants;
 using Application.Interfaces;
 using Application.Validators;
 using Domain.Entities;
@@ -44,6 +44,17 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
 
+// Add CORS Configuration
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+        policy
+            .WithOrigins("https://teamflow-roan-rho.vercel.app")
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials());
+});
+
 // Register DbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -65,11 +76,22 @@ builder.Services.AddScoped<ITokenGeneratorService, TokenGeneratorService>();
 builder.Services.AddScoped<IHealthCheckService, HealthCheckService>();
 
 // Register Caching Service
-builder.Services.AddStackExchangeRedisCache(options =>
+var redisEnabled = builder.Configuration.GetValue<bool>("Redis:Enabled");
+
+if (redisEnabled)
 {
-    var redisConnection = builder.Configuration["Redis:ConnectionString"] ?? "localhost:6379";
-    options.Configuration = redisConnection;
-});
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        var redisConnection = builder.Configuration["Redis:ConnectionString"] ?? "localhost:6379";
+        options.Configuration = redisConnection;
+    });
+}
+else
+{
+    // Development fallback when Redis is not running.
+    builder.Services.AddDistributedMemoryCache();
+}
+
 builder.Services.AddScoped<ICacheService, CacheService>();
 
 builder.Services.AddSwaggerGen();
@@ -151,6 +173,9 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 // Register Organization Membership Middleware
 app.UseMiddleware<OrganizationMembershipMiddleware>();
 
+// Enable CORS
+app.UseCors("AllowFrontend");
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
@@ -160,4 +185,3 @@ app.MapControllers();
 
 app.Run();
 
-app.Run();

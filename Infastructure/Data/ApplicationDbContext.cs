@@ -1,4 +1,4 @@
-using Domain.Entities;
+﻿using Domain.Entities;
 using Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
@@ -134,13 +134,13 @@ namespace Infastructure.Data
                 entity.HasOne(e => e.InvitedByUser)
                     .WithMany()
                     .HasForeignKey(e => e.InvitedByUserId)
-                    .OnDelete(DeleteBehavior.SetNull);
+                    .OnDelete(DeleteBehavior.Restrict);
 
                 // Foreign key to AcceptedByUser
                 entity.HasOne(e => e.AcceptedByUser)
                     .WithMany()
                     .HasForeignKey(e => e.AcceptedByUserId)
-                    .OnDelete(DeleteBehavior.SetNull);
+                    .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasQueryFilter(e => !e.IsDeleted);
             });
@@ -195,3 +195,4 @@ namespace Infastructure.Data
         }
     }
 }
+

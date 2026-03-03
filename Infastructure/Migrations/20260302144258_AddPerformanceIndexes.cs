@@ -76,13 +76,13 @@ namespace Infastructure.Migrations
                         column: x => x.AcceptedByUserId,
                         principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_InviteTokens_Users_InvitedByUserId",
                         column: x => x.InvitedByUserId,
                         principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -275,3 +275,4 @@ namespace Infastructure.Migrations
         }
     }
 }
+
