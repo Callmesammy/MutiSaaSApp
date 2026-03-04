@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "mssql1": {
+      "secretStore": "AzureContainerApp",
+      "type": "mssql.onprem",
+      "connectionId": "ConnectionStrings:DatabaseConnection"
+    }
+  }
+}

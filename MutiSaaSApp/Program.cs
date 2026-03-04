@@ -49,7 +49,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
         policy
-            .WithOrigins("https://teamflow-roan-rho.vercel.app")
+            .WithOrigins("http://localhost:3000", "https://team-five-black.vercel.app")
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials());
